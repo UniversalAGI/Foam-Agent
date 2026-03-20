@@ -106,19 +106,17 @@ def llm_requires_visualization(state: GraphState) -> bool:
 
 def route_after_planner(state: GraphState):
     """
-    Route after planner node based on whether user wants custom mesh.
-    For current version, if user wants custom mesh, user should be able to provide a path to the mesh file.
+    Route after planner node. Always routes through meshing node
+    so that STL files are copied and geometry metadata is computed. 
     """
     mesh_type = state.get("mesh_type", "standard_mesh")
     if mesh_type == "custom_mesh":
         print("Router: Custom mesh requested. Routing to meshing node.")
-        return "meshing"
     elif mesh_type == "gmsh_mesh":
         print("Router: GMSH mesh requested. Routing to meshing node.")
-        return "meshing"
     else:
-        print("Router: Standard mesh generation. Routing to input_writer node.")
-        return "input_writer"
+        print("Router: Standard mesh generation. Routing to meshing node for STL setup.")
+    return "meshing"
 
 
 def route_after_input_writer(state: GraphState):

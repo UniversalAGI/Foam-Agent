@@ -35,6 +35,12 @@ def parse_args():
         default=None,
         help="Path to custom mesh file (e.g., .msh, .stl, .obj). If not provided, no custom mesh will be used."
     )
+    parser.add_argument(
+        '--stl_dir',
+        type=str,
+        default=None,
+        help="Path to directory containing STL files for snappyHexMesh, or a single .stl file."
+    )
     return parser.parse_args()
 
 def run_command(command_str):
@@ -76,6 +82,8 @@ def main():
     main_cmd = f"python src/main.py --prompt_path='{args.prompt_path}' --output_dir='{args.output}'"
     if args.custom_mesh_path:
         main_cmd += f" --custom_mesh_path='{args.custom_mesh_path}'"
+    if args.stl_dir:
+        main_cmd += f" --stl_dir='{args.stl_dir}'"
     
     print(f"Main workflow command: {main_cmd}")
     

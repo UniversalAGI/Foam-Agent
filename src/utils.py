@@ -743,6 +743,8 @@ class GraphState(TypedDict):
     custom_mesh_used: Optional[bool]
     mesh_type: Optional[str]
     custom_mesh_path: Optional[str]
+    stl_dir: Optional[str]
+    stl_context: Optional[str]
     # Review and rewrite related fields
     review_analysis: Optional[str]
     rewrite_plan: Optional[dict]
