@@ -73,10 +73,18 @@ def _initial_write_mode(state):
     print(f"============================== Initial Write Agent ==============================")
     
     config = state["config"]
+
+    # Enrich user_requirement with STL geometry metadata if available
+    user_req = state["user_requirement"]
+    stl_context = state.get("stl_context")
+    if stl_context:
+        print("Injecting STL geometry metadata into user requirement for LLM context.")
+        user_req = user_req + "\n\n" + stl_context
+
     write_out = initial_write(
         case_dir=state["case_dir"],
         subtasks=state["subtasks"],
-        user_requirement=state["user_requirement"],
+        user_requirement=user_req,
         tutorial_reference=state["tutorial_reference"],
         case_solver=state['case_stats']['case_solver'],
         generation_mode=getattr(config, "input_writer_generation_mode", "sequential_dependency"),
@@ -99,6 +107,7 @@ def _initial_write_mode(state):
         allrun_reference=state["allrun_reference"],
         mesh_type=mesh_type,
         mesh_commands=mesh_commands,
+        user_requirement=user_req,
     )
 
     return {
@@ -106,3 +115,4 @@ def _initial_write_mode(state):
         "commands": [],
         "foamfiles": foamfiles,
     }
+

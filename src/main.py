@@ -49,7 +49,7 @@ def create_foam_agent_graph() -> StateGraph:
     
     return workflow
 
-def initialize_state(user_requirement: str, config: Config, custom_mesh_path: Optional[str] = None) -> GraphState:
+def initialize_state(user_requirement: str, config: Config, custom_mesh_path: Optional[str] = None, stl_dir: Optional[str] = None) -> GraphState:
     case_stats = json.load(open(f"{config.database_path}/raw/openfoam_case_stats.json", "r"))
     # mesh_type = "custom_mesh" if custom_mesh_path else "standard_mesh"
     state = GraphState(
@@ -83,6 +83,8 @@ def initialize_state(user_requirement: str, config: Config, custom_mesh_path: Op
         custom_mesh_used=None,
         mesh_type=None,
         custom_mesh_path=custom_mesh_path,
+        stl_dir=stl_dir,
+        stl_context=None,
         review_analysis=None,
         rewrite_plan=None,
         input_writer_mode="initial",
@@ -99,7 +101,7 @@ def initialize_state(user_requirement: str, config: Config, custom_mesh_path: Op
         print("No custom mesh path provided.")
     return state
 
-def main(user_requirement: str, config: Config, custom_mesh_path: Optional[str] = None):
+def main(user_requirement: str, config: Config, custom_mesh_path: Optional[str] = None, stl_dir: Optional[str] = None):
     """Main function to run the OpenFOAM workflow."""
     
     # Create and compile the graph
@@ -107,7 +109,7 @@ def main(user_requirement: str, config: Config, custom_mesh_path: Optional[str] 
     app = workflow.compile()
     
     # Initialize the state
-    initial_state = initialize_state(user_requirement, config, custom_mesh_path)
+    initial_state = initialize_state(user_requirement, config, custom_mesh_path, stl_dir)
     
     print("Starting Foam-Agent...")
     
@@ -155,6 +157,12 @@ if __name__ == "__main__":
         help="Path to custom mesh file (e.g., .msh, .stl, .obj). If not provided, no custom mesh will be used.",
     )
     parser.add_argument(
+        "--stl_dir",
+        type=str,
+        default=None,
+        help="Path to directory containing STL files for snappyHexMesh. Can also be a single .stl file.",
+    )
+    parser.add_argument(
         "--reuse_generated_dir",
         type=str,
         default="",
@@ -181,4 +189,4 @@ if __name__ == "__main__":
     with open(args.prompt_path, 'r') as f:
         user_requirement = f.read()
     
-    main(user_requirement, config, args.custom_mesh_path)
+    main(user_requirement, config, args.custom_mesh_path, args.stl_dir)

@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 import re
 
 from services.run_local import run_allrun_and_collect_errors
+from services.validation import preflight_check
 
 
 def local_runner_node(state):
@@ -18,6 +19,9 @@ def local_runner_node(state):
     
     print(f"============================== Runner ==============================")
     
+    # Pre-flight validation: auto-fix common LLM-generated issues
+    preflight_check(case_dir)
+
     # Execute using service and collect errors
     error_logs = run_allrun_and_collect_errors(case_dir, max_time_limit)
 
@@ -32,4 +36,3 @@ def local_runner_node(state):
         **state,
         "error_logs": error_logs
     }
-        

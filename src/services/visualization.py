@@ -1,9 +1,36 @@
 import os
 import sys
 import subprocess
+import shutil
 from typing import List, Tuple, Optional
 from utils import save_file
 from . import global_llm_service
+
+
+def _ensure_xvfb():
+    """Install Xvfb if running in a headless environment without a display.
+
+    This is a no-op if DISPLAY is already set or xvfb-run is available.
+    Intended for Docker containers that lack a display server.
+    """
+    if os.environ.get("DISPLAY"):
+        return  # Display available, nothing to do
+    if shutil.which("Xvfb") or shutil.which("xvfb-run"):
+        return  # Xvfb already installed
+    try:
+        subprocess.run(
+            ["apt-get", "update", "-qq"],
+            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            timeout=60,
+        )
+        subprocess.run(
+            ["apt-get", "install", "-y", "-qq", "xvfb", "libgl1-mesa-glx"],
+            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            timeout=120,
+        )
+        print("Installed Xvfb for headless rendering.")
+    except Exception as e:
+        print(f"Warning: Could not install Xvfb ({e}). Visualization may fail in headless environments.")
 
 
 def ensure_foam_file(case_dir: str) -> str:
@@ -109,6 +136,9 @@ def run_pyvista_script(
 
     expected_png_abs = os.path.abspath(os.path.join(case_dir, expected_png)) if expected_png else None
 
+    # Ensure Xvfb is available for headless rendering
+    _ensure_xvfb()
+
     try:
         completed = subprocess.run(
             [sys.executable, script_path],
@@ -189,6 +219,18 @@ import sys
 
 # Force headless rendering early
 os.environ.setdefault('PYVISTA_OFF_SCREEN', 'true')
+
+import subprocess, shutil
+
+# Auto-install Xvfb if missing (for headless Docker containers)
+if not os.environ.get('DISPLAY') and not shutil.which('Xvfb'):
+    try:
+        subprocess.run(['apt-get', 'update', '-qq'], check=True,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+        subprocess.run(['apt-get', 'install', '-y', '-qq', 'xvfb', 'libgl1-mesa-glx'],
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
+    except Exception:
+        pass
 
 import pyvista as pv
 
